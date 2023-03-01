@@ -75,11 +75,11 @@ void I2C_Init(I2C_Handle_t *pi2cHandler)
 	uint32_t trise;
 	if(pi2cHandler->i2cconfig.ACKControl == I2C_ACK_ENABLE)
 	{
-		pi2cHandler->pI2Cx->CR1 |= (1<<10);
+		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_ACK);
 	}
 	else
 	{
-		pi2cHandler->pI2Cx->CR1 &= ~(1<<10);
+		pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
 	}
 	
 	
