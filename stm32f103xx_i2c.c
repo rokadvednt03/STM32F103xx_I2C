@@ -73,6 +73,7 @@ void I2C_Control(I2C_TypeDef *pI2Cx , uint32_t EnorDi)
 void I2C_Init(I2C_Handle_t *pi2cHandler)
 {
 	uint32_t trise;
+	//ACK
 	if(pi2cHandler->i2cconfig.ACKControl == I2C_ACK_ENABLE)
 	{
 		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_ACK);
@@ -82,7 +83,7 @@ void I2C_Init(I2C_Handle_t *pi2cHandler)
 		pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
 	}
 	
-	
+	//Set_periClockfreq
 	pi2cHandler->pI2Cx->CR2 |= ((36) & 0x3F);
 	
 	pi2cHandler->pI2Cx->OAR1 &= ~(1 << 15);
@@ -131,7 +132,7 @@ void I2C_Init(I2C_Handle_t *pi2cHandler)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                     //
-//																I2C_Helping_Functions                                //
+//																I2C_MasterSendData                                   //
 //																															  										 //
 /////////////////////////////////////////////////////////////////////////////////////////
 void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_t len ,uint8_t Slaveaddr)

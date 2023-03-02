@@ -7,7 +7,9 @@
 int main()
 {
 	uint32_t reg_state;
-	uint8_t data = 0x45;
+	uint8_t data[] = "Hello_I2C-THIS IS VEDANT ROKAD";
+	uint8_t *pdata = data;
+	uint32_t len = strlen((char*)data);
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN ;
 	RCC->APB1ENR |= RCC_APB1ENR_I2C1EN ;
 	
@@ -19,7 +21,7 @@ int main()
 	GPIOB->CRL |= (GPIO_CRL_CNF7_0) | (GPIO_CRL_CNF7_1);
 		
 	I2C1->CR2 |= (0x24 & (0x3F));
-	I2C1->CCR |= (0x168 & (0xFFF));
+	I2C1->CCR |= (0x32 & (0xFFF));
 	I2C1->TRISE = 0x25;
 	
 	I2C1->CR1 |= (I2C_CR1_PE);
@@ -41,11 +43,64 @@ int main()
 		
 	while(!(I2C1->SR1 & I2C_SR1_TXE));
 	
-	I2C1->DR = ((data) & (0xFF)) ;
+	while(len--)
+	{
+		I2C1->DR = ((*pdata) & (0xFF)) ;
+		while(!(I2C1->SR1 & I2C_SR1_TXE));
+		pdata++;
+		//I2C1->CR1 |= I2C_CR1_START;
+	}
 	while(!(I2C1->SR1 & I2C_SR1_TXE));
-	
 	while(!(I2C1->SR1 & I2C_SR1_BTF));
+	
 	I2C1->CR1 |= (I2C_CR1_STOP);
 	
 }
 
+
+
+
+/*
+int main()
+{
+	uint32_t reg_state;
+	uint8_t data = 0x45;
+	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN ;
+	RCC->APB1ENR |= RCC_APB1ENR_I2C2EN ;
+	
+	GPIOB->CRH |= (GPIO_CRH_MODE10) | (GPIO_CRH_CNF10);
+	GPIOB->CRH |= (GPIO_CRH_MODE11) | (GPIO_CRH_CNF11);
+	
+		
+	I2C2->CR2 |= (0x24 & (0x3F));
+	I2C2->CCR |= (0x32 & (0xFFF));
+	I2C2->TRISE = 0x25;
+	
+	I2C2->CR1 |= (I2C_CR1_PE);
+	
+	
+	I2C2->CR1 |= I2C_CR1_START;
+	
+	while(!(I2C2->SR1 & I2C_SR1_SB));
+	
+	reg_state = I2C2->SR1;
+
+	I2C2->DR = slave_addr;
+	
+	while(!(I2C2->SR1 & I2C_SR1_ADDR));
+	
+	reg_state = I2C2->SR1;
+	reg_state = I2C2->SR2;
+	(void)reg_state;
+		
+	while(!(I2C2->SR1 & I2C_SR1_TXE));
+	
+	I2C2->DR = ((data) & (0xFF)) ;
+	while(!(I2C2->SR1 & I2C_SR1_TXE));
+	
+	while(!(I2C2->SR1 & I2C_SR1_BTF));
+	I2C2->CR1 |= (I2C_CR1_STOP);
+	
+}
+
+*/
