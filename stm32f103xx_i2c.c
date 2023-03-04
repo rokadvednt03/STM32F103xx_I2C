@@ -73,47 +73,37 @@ void I2C_Control(I2C_TypeDef *pI2Cx , uint32_t EnorDi)
 void I2C_Init(I2C_Handle_t *pi2cHandler)
 {
 	uint32_t trise;
-	//ACK
+		// ACKControl;
 	if(pi2cHandler->i2cconfig.ACKControl == I2C_ACK_ENABLE)
-	{
-		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_ACK);
-	}
+			pi2cHandler->pI2Cx->CR1 |= I2C_CR1_ACK;
 	else
-	{
-		pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
-	}
+			pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
 	
-	//Set_periClockfreq
-	pi2cHandler->pI2Cx->CR2 |= ((36) & 0x3F);
+	// SCLSpeed;
+	pi2cHandler->pI2Cx->CR2 |= ((36) & (0x3F));
 	
-	pi2cHandler->pI2Cx->OAR1 &= ~(1 << 15);
-	pi2cHandler->pI2Cx->OAR1 |= (1<< 14);
-	pi2cHandler->pI2Cx->OAR1 |= (pi2cHandler->i2cconfig.DeviceADDR << 1);
-	
+	// DeviceADDR;
+	pi2cHandler->pI2Cx->OAR1 &= ~(I2C_OAR1_ADDMODE);
+	pi2cHandler->pI2Cx->OAR1 |= (1<<14);
+	pi2cHandler->pI2Cx->OAR1 |= (((pi2cHandler->i2cconfig.DeviceADDR)&(0x7F)) << 1);
+	// FM_DutyCycle;
 	if(pi2cHandler->i2cconfig.SCLSpeed <= I2C_SCLSpeed_SM)
 	{
-		//Config for Standerd mode
-		pi2cHandler->pI2Cx->CCR &= ~(I2C_CCR_FS);		
-		pi2cHandler->pI2Cx->CCR |= ((((36000)/(pi2cHandler->i2cconfig.SCLSpeed*2))) & 0xFFF);
+		pi2cHandler->pI2Cx->CCR &= ~(I2C_CCR_FS);
+		pi2cHandler->pI2Cx->CCR |= (36000000U/(2*(pi2cHandler->i2cconfig.SCLSpeed*1000U)));
 	}
 	else
 	{
-		//Config for Fast mode
 		pi2cHandler->pI2Cx->CCR |= (I2C_CCR_FS);
+		pi2cHandler->pI2Cx->CCR |= (I2C_CCR_DUTY);
 		if(pi2cHandler->i2cconfig.FM_DutyCycle == I2C_FM_DutyCycle_2)
-		{
-			pi2cHandler->pI2Cx->CCR &= ~(I2C_CCR_DUTY);
-			pi2cHandler->pI2Cx->CCR |= ((((36000)/(pi2cHandler->i2cconfig.SCLSpeed*3))) & 0xFFF);
-		}
+			pi2cHandler->pI2Cx->CCR |= (36000000U/(3*(pi2cHandler->i2cconfig.SCLSpeed*1000U)));
 		else
-		{
-			pi2cHandler->pI2Cx->CCR |= (I2C_CCR_DUTY);
-			pi2cHandler->pI2Cx->CCR |= ((((36000)/(pi2cHandler->i2cconfig.SCLSpeed*25))) & 0xFFF);
-		}
+			pi2cHandler->pI2Cx->CCR |= (36000000U/(25*(pi2cHandler->i2cconfig.SCLSpeed*1000U)));
 	}
 	
-	//TRISE Config
-	if(pi2cHandler->i2cconfig.SCLSpeed <= I2C_SCLSpeed_SM)
+	//TRISE
+	if(pi2cHandler->i2cconfig.SCLSpeed <= I2C_SCLSpeed_FM)
 	{
 		trise = ((36000000U)/(1000000U))+ 1 ;
 		pi2cHandler->pI2Cx->TRISE = ((trise) & 0x3F);
@@ -126,55 +116,45 @@ void I2C_Init(I2C_Handle_t *pi2cHandler)
 	
 }
 
-
-
-
-
 /////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                     //
 //																I2C_MasterSendData                                   //
 //																															  										 //
 /////////////////////////////////////////////////////////////////////////////////////////
+
 void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_t len ,uint8_t Slaveaddr)
 {
-	//1.START_Condition Generation 
-		I2C_Startbit_Gernation(pi2cHandler->pI2Cx);
+	uint32_t reg_state;
+	I2C1->CR1 |= (I2C_CR1_PE);
 	
-	//2. confirm that start generation is completed by checking the SB flag in the SR1
-	//   Note: Until SB is cleared SCL will be stretched (pulled to LOW)
-	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_FLAG_SB) & FLAG_SET));
+	I2C1->CR1 |= I2C_CR1_START;
 	
-	//3. Send the address of the slave with r/nw bit set to R(1) (total 8 bits )
-		I2C_ExcicuteADDR_Phase(pi2cHandler->pI2Cx,Slaveaddr);
+	while(!(I2C1->SR1 & I2C_SR1_SB));
 	
-	//4. wait until address phase is completed by checking the ADDR flag in teh SR1
-	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_FLAG_ADDR) & FLAG_SET));
+	reg_state = I2C1->SR1;
+
+	I2C1->DR = Slaveaddr;
 	
-	//5. clear the ADDR flag according to its software sequence
-	//   Note: Until ADDR is cleared SCL will be stretched (pulled to LOW)
-	I2C_ClearADDRFlag(pi2cHandler->pI2Cx);
+	while(!(I2C1->SR1 & I2C_SR1_ADDR));
 	
-	//6. send the data until len becomes 0
+	reg_state = I2C1->SR1;
+	reg_state = I2C1->SR2;
+	(void)reg_state;
+		
+	while(!(I2C1->SR1 & I2C_SR1_TXE));
+	
 	while(len--)
 	{
-		while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_FLAG_TXE) & FLAG_SET));
-		pi2cHandler->pI2Cx->DR = *(pTxBuffer);
-		pTxBuffer--;
+		I2C1->DR = ((*pTxBuffer) & (0xFF)) ;
+		while(!(I2C1->SR1 & I2C_SR1_TXE));
+		pTxBuffer++;
+		//I2C1->CR1 |= I2C_CR1_START;
 	}
+	while(!(I2C1->SR1 & I2C_SR1_TXE));
+	while(!(I2C1->SR1 & I2C_SR1_BTF));
 	
-	//7. when Len becomes zero wait for TXE=1 and BTF=1 before generating the STOP condition
-	//   Note: TXE=1 , BTF=1 , means that both SR and DR are empty and next transmission should begin
-	//   when BTF=1 SCL will be stretched (pulled to LOW)
-	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_FLAG_TXE) & FLAG_SET));
-	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_FLAG_BTF) & FLAG_SET));
-	
-	//8. Generate STOP condition and master need not to wait for the completion of stop condition.
-	//   Note: generating STOP, automatically clears the BTF
-	I2C_Stopbit_Generation(pi2cHandler->pI2Cx);
-
+	I2C1->CR1 |= (I2C_CR1_STOP);
 }
-
-
 
 
 
@@ -218,4 +198,44 @@ static void I2C_Stopbit_Generation(I2C_TypeDef *pI2Cx)
 {
 	pI2Cx->CR1 |= (I2C_CR1_STOP);
 }
+
+
+
+
+
+
+/*
+{
+	uint32_t reg_temp;
+		pi2cHandler->pI2Cx->CR1 |= I2C_CR1_PE;
+		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_START);
+		
+		while(!((pi2cHandler->pI2Cx->SR1) & (I2C_SR1_SB)));
+		
+		reg_temp = pi2cHandler->pI2Cx->SR1;
+	
+		//pi2cHandler->pI2Cx->DR |= ((Slaveaddr & (0x7F))<<1);
+		//pi2cHandler->pI2Cx->DR &= ~(1<<0);
+		I2C1->DR = 0x68;
+	
+		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_ADDR));
+		reg_temp = pi2cHandler->pI2Cx->SR1;
+		reg_temp = pi2cHandler->pI2Cx->SR2;
+		(void)reg_temp;
+		
+	while(len--)
+	{
+		I2C1->DR = ((*pTxBuffer) & (0xFF)) ;
+		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
+		pTxBuffer++;
+		//I2C1->CR1 |= I2C_CR1_START;
+	}
+	
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_BTF));
+	
+	pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
+}
+
+*/
 
