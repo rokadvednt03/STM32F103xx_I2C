@@ -70,6 +70,7 @@ void I2C_Control(I2C_TypeDef *pI2Cx , uint32_t EnorDi)
 //							  				     					I2C_Init                                       //
 //																															  										 //
 /////////////////////////////////////////////////////////////////////////////////////////
+
 void I2C_Init(I2C_Handle_t *pi2cHandler)
 {
 	uint32_t trise;
@@ -121,7 +122,37 @@ void I2C_Init(I2C_Handle_t *pi2cHandler)
 //																I2C_MasterSendData                                   //
 //																															  										 //
 /////////////////////////////////////////////////////////////////////////////////////////
+void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_t len ,uint8_t Slaveaddr)
+{	
+	uint32_t reg_state;
+	//1.START_BIT_GENERATE	
+	pi2cHandler->pI2Cx->CR1 |= I2C_CR1_START;
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_SB));
 
+	reg_state = pi2cHandler->pI2Cx->SR1;
+	pi2cHandler->pI2Cx->DR = (Slaveaddr<<1);
+	
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_ADDR));
+	reg_state = pi2cHandler->pI2Cx->SR1;
+	reg_state = pi2cHandler->pI2Cx->SR2;
+	(void)reg_state;
+		
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
+	
+	while(len--)
+	{
+		pi2cHandler->pI2Cx->DR = ((*pTxBuffer) & (0xFF)) ;
+		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
+		pTxBuffer++;
+		//I2C1->CR1 |= I2C_CR1_START;
+	}
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_BTF));
+	
+	pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
+}
+
+/*
 void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_t len ,uint8_t Slaveaddr)
 {
 	uint32_t reg_state;
@@ -156,7 +187,7 @@ void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_
 	I2C1->CR1 |= (I2C_CR1_STOP);
 }
 
-
+*/
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
