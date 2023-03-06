@@ -3,13 +3,14 @@
 #include <string.h>
 #define slave_addr ((0x68)&(0x7F))
 
-
 int main()
 {
 	uint32_t reg_state;
-	uint8_t data[] = "Hello_I2C-THIS IS VEDANT ROKAD";
-	uint8_t *pdata = data;
-	uint32_t len = strlen((char*)data);
+	uint16_t receive_data;
+	//uint8_t data[] = "Hello_I2C-THIS IS VEDANT ROKAD";
+	//uint8_t *pdata = data;
+	//uint32_t len = strlen((char*)data);
+	uint8_t data[] = {0x52};
 	I2C_Handle_t i2ctest;
 	
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN ;
@@ -22,7 +23,7 @@ int main()
 	GPIOB->CRL |= (GPIO_CRL_MODE7_0) | (GPIO_CRL_MODE7_1);
 	GPIOB->CRL |= (GPIO_CRL_CNF7_0) | (GPIO_CRL_CNF7_1);
 	
-		
+	
 	i2ctest.pI2Cx = I2C1;
 	i2ctest.i2cconfig.ACKControl = I2C_ACK_ENABLE;
 	i2ctest.i2cconfig.DeviceADDR = 0x55;
@@ -31,9 +32,59 @@ int main()
 	
 	I2C1->CR1 |= (I2C_CR1_PE);
 	
-	I2C_MasterSendData(&i2ctest,data,len,0x34);
+	I2C_MasterSendData(&i2ctest,data,1,0x68);
 	
+	
+	//receive data 
+	I2C1->CR1 |= I2C_CR1_PE;
+	I2C1->CR1 |= I2C_CR1_ACK;
+	I2C1->CR1	|= I2C_CR1_START;
+	while(!(I2C1->SR1 & I2C_SR1_SB));
+	I2C1->DR = (0xD1);
+	
+	while(!(I2C1->SR1 & I2C_SR1_ADDR));
+	I2C1->CR1 &= ~(I2C_CR1_ACK);
+	
+	reg_state = I2C1->SR1;
+	reg_state = I2C1->SR2;
+	while(!(I2C1->SR1 & I2C_SR1_RXNE));
+	I2C1->CR1 |= I2C_CR1_STOP;
+	receive_data = I2C1->DR;
 }
+
+
+/*
+//receive data 
+	I2C1->CR1 |= I2C_CR1_PE;
+	I2C1->CR1	|= I2C_CR1_START;
+	while(!(I2C1->SR1 & I2C_SR1_SB));
+	I2C1->DR = (0x68 << 1);
+	I2C1->DR |= (1<<0);
+	while(!(I2C1->SR1 & I2C_SR1_ADDR));
+	I2C1->CR1 &= ~(I2C_CR1_ACK);
+	
+	reg_state = I2C1->SR1;
+	reg_state = I2C1->SR2;
+	while(!(I2C1->SR1 & I2C_SR1_RXNE));
+	I2C1->CR1 |= I2C_CR1_STOP;
+	receive_data = I2C1->DR;
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

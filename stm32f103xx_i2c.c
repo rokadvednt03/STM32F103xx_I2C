@@ -141,54 +141,19 @@ void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_
 	
 	while(len--)
 	{
+		
 		pi2cHandler->pI2Cx->DR = ((*pTxBuffer) & (0xFF)) ;
 		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
 		pTxBuffer++;
 		//I2C1->CR1 |= I2C_CR1_START;
+		//while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_SB));
+		//reg_state = pi2cHandler->pI2Cx->SR1;
 	}
 	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
 	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_BTF));
 	
 	pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
 }
-
-/*
-void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_t len ,uint8_t Slaveaddr)
-{
-	uint32_t reg_state;
-	I2C1->CR1 |= (I2C_CR1_PE);
-	
-	I2C1->CR1 |= I2C_CR1_START;
-	
-	while(!(I2C1->SR1 & I2C_SR1_SB));
-	
-	reg_state = I2C1->SR1;
-
-	I2C1->DR = Slaveaddr;
-	
-	while(!(I2C1->SR1 & I2C_SR1_ADDR));
-	
-	reg_state = I2C1->SR1;
-	reg_state = I2C1->SR2;
-	(void)reg_state;
-		
-	while(!(I2C1->SR1 & I2C_SR1_TXE));
-	
-	while(len--)
-	{
-		I2C1->DR = ((*pTxBuffer) & (0xFF)) ;
-		while(!(I2C1->SR1 & I2C_SR1_TXE));
-		pTxBuffer++;
-		//I2C1->CR1 |= I2C_CR1_START;
-	}
-	while(!(I2C1->SR1 & I2C_SR1_TXE));
-	while(!(I2C1->SR1 & I2C_SR1_BTF));
-	
-	I2C1->CR1 |= (I2C_CR1_STOP);
-}
-
-*/
-
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                     //
@@ -229,44 +194,3 @@ static void I2C_Stopbit_Generation(I2C_TypeDef *pI2Cx)
 {
 	pI2Cx->CR1 |= (I2C_CR1_STOP);
 }
-
-
-
-
-
-
-/*
-{
-	uint32_t reg_temp;
-		pi2cHandler->pI2Cx->CR1 |= I2C_CR1_PE;
-		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_START);
-		
-		while(!((pi2cHandler->pI2Cx->SR1) & (I2C_SR1_SB)));
-		
-		reg_temp = pi2cHandler->pI2Cx->SR1;
-	
-		//pi2cHandler->pI2Cx->DR |= ((Slaveaddr & (0x7F))<<1);
-		//pi2cHandler->pI2Cx->DR &= ~(1<<0);
-		I2C1->DR = 0x68;
-	
-		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_ADDR));
-		reg_temp = pi2cHandler->pI2Cx->SR1;
-		reg_temp = pi2cHandler->pI2Cx->SR2;
-		(void)reg_temp;
-		
-	while(len--)
-	{
-		I2C1->DR = ((*pTxBuffer) & (0xFF)) ;
-		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
-		pTxBuffer++;
-		//I2C1->CR1 |= I2C_CR1_START;
-	}
-	
-	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_TXE));
-	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_BTF));
-	
-	pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
-}
-
-*/
-
