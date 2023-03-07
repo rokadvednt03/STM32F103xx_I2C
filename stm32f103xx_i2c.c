@@ -11,10 +11,10 @@
 
 #include "stm32f10x.h"
 #include "stm32f103xx_i2c.h"
-
+#include <stdint.h>
 
 static void I2C_Startbit_Gernation(I2C_TypeDef *pI2Cx);
-static void I2C_ExcicuteADDR_Phase(I2C_TypeDef *pI2Cx ,uint8_t SlaveADDR);
+static void I2C_ExcicuteADDR_PhaseWrite(I2C_TypeDef *pI2Cx ,uint8_t SlaveADDR);
 static void I2C_ClearADDRFlag(I2C_TypeDef *pI2Cx);
 static void I2C_Stopbit_Generation(I2C_TypeDef *pI2Cx);
 
@@ -155,6 +155,72 @@ void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_
 	pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
 }
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                     //
+//																I2C_MasterReceiveData                                //
+//																															  										 //
+/////////////////////////////////////////////////////////////////////////////////////////
+void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint16_t *pRxBuffer , uint32_t len ,uint8_t Slaveaddr)
+{
+	uint32_t reg_state;
+	Slaveaddr = (Slaveaddr << 1) ;
+	Slaveaddr |= (1<<0);
+	
+	pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_ACK);
+	pi2cHandler->pI2Cx->CR1 |= I2C_CR1_START;
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_SB));
+	
+	reg_state = pi2cHandler->pI2Cx->SR1;
+	
+	pi2cHandler->pI2Cx->DR = Slaveaddr;
+	while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_ADDR));
+	
+	if(len == 1)
+	{
+		pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
+		reg_state = pi2cHandler->pI2Cx->SR1;
+		reg_state = pi2cHandler->pI2Cx->SR2;
+		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
+		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
+		*pRxBuffer = pi2cHandler->pI2Cx->DR;
+	
+	}
+	else
+	{
+		if(len > 1)
+		{
+			uint32_t i ;
+			reg_state = pi2cHandler->pI2Cx->SR1;
+			reg_state = pi2cHandler->pI2Cx->SR2;
+			
+			for(i = len ; i > 0 ; i--)
+			{
+				while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
+				if(i == 2)
+				{
+					*pRxBuffer = pi2cHandler->pI2Cx->DR;
+					pRxBuffer++;
+					
+					pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
+					reg_state = pi2cHandler->pI2Cx->SR1;
+					reg_state = pi2cHandler->pI2Cx->SR2;
+					while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
+					pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
+					*pRxBuffer = pi2cHandler->pI2Cx->DR;
+					
+				}
+				*pRxBuffer = pi2cHandler->pI2Cx->DR;
+				pRxBuffer++;
+			}
+		}
+	}
+	
+	(void)reg_state;
+	if(pi2cHandler->i2cconfig.ACKControl == I2C_ACK_ENABLE)
+	pi2cHandler->pI2Cx->CR1 |= I2C_CR1_ACK;
+}
 /////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                     //
 //																I2C_Helping_Functions                                //
@@ -175,7 +241,7 @@ uint8_t I2C_GetFlagStatus(I2C_TypeDef *pI2Cx , uint8_t Flagname)
 }
 
 
-static void I2C_ExcicuteADDR_Phase(I2C_TypeDef *pI2Cx ,uint8_t SlaveADDR)
+static void I2C_ExcicuteADDR_PhaseWrite(I2C_TypeDef *pI2Cx ,uint8_t SlaveADDR)
 {
 	SlaveADDR = SlaveADDR << 1 ;
 	SlaveADDR &= ~(1 << 0) ;
@@ -194,3 +260,4 @@ static void I2C_Stopbit_Generation(I2C_TypeDef *pI2Cx)
 {
 	pI2Cx->CR1 |= (I2C_CR1_STOP);
 }
+

@@ -6,7 +6,7 @@
 int main()
 {
 	uint32_t reg_state;
-	uint16_t receive_data;
+	uint16_t receive_data[] = {};
 	//uint8_t data[] = "Hello_I2C-THIS IS VEDANT ROKAD";
 	//uint8_t *pdata = data;
 	//uint32_t len = strlen((char*)data);
@@ -32,24 +32,10 @@ int main()
 	
 	I2C1->CR1 |= (I2C_CR1_PE);
 	
-	I2C_MasterSendData(&i2ctest,data,1,0x68);
-	
-	
-	//receive data 
-	I2C1->CR1 |= I2C_CR1_PE;
-	I2C1->CR1 |= I2C_CR1_ACK;
-	I2C1->CR1	|= I2C_CR1_START;
-	while(!(I2C1->SR1 & I2C_SR1_SB));
-	I2C1->DR = (0xD1);
-	
-	while(!(I2C1->SR1 & I2C_SR1_ADDR));
-	I2C1->CR1 &= ~(I2C_CR1_ACK);
-	
-	reg_state = I2C1->SR1;
-	reg_state = I2C1->SR2;
-	while(!(I2C1->SR1 & I2C_SR1_RXNE));
-	I2C1->CR1 |= I2C_CR1_STOP;
-	receive_data = I2C1->DR;
+//	I2C_MasterSendData(&i2ctest,data,1,0x68);
+
+	I2C_MasterReceiveData(&i2ctest,receive_data,1,0x68);
+
 }
 
 
