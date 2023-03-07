@@ -185,8 +185,8 @@ void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint16_t *pRxBuffer , uin
 		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
 		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
 		*pRxBuffer = pi2cHandler->pI2Cx->DR;
-	
 	}
+	
 	else
 	{
 		if(len > 1)
@@ -200,19 +200,13 @@ void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint16_t *pRxBuffer , uin
 				while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
 				if(i == 2)
 				{
-					*pRxBuffer = pi2cHandler->pI2Cx->DR;
-					pRxBuffer++;
-					
 					pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
-					reg_state = pi2cHandler->pI2Cx->SR1;
-					reg_state = pi2cHandler->pI2Cx->SR2;
-					while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
-					pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
-					*pRxBuffer = pi2cHandler->pI2Cx->DR;
 					
+						pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
 				}
 				*pRxBuffer = pi2cHandler->pI2Cx->DR;
 				pRxBuffer++;
+				
 			}
 		}
 	}
@@ -221,6 +215,8 @@ void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint16_t *pRxBuffer , uin
 	if(pi2cHandler->i2cconfig.ACKControl == I2C_ACK_ENABLE)
 	pi2cHandler->pI2Cx->CR1 |= I2C_CR1_ACK;
 }
+
+
 /////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                     //
 //																I2C_Helping_Functions                                //

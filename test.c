@@ -5,12 +5,10 @@
 
 int main()
 {
-	uint32_t reg_state;
 	uint16_t receive_data[] = {};
-	//uint8_t data[] = "Hello_I2C-THIS IS VEDANT ROKAD";
-	//uint8_t *pdata = data;
-	//uint32_t len = strlen((char*)data);
-	uint8_t data[] = {0x52};
+	uint16_t rec;
+		
+	uint8_t data[] = {0x51,0x52};
 	I2C_Handle_t i2ctest;
 	
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN ;
@@ -32,90 +30,11 @@ int main()
 	
 	I2C1->CR1 |= (I2C_CR1_PE);
 	
-//	I2C_MasterSendData(&i2ctest,data,1,0x68);
+	I2C_MasterSendData(&i2ctest,&data[0],1,0x68);
 
-	I2C_MasterReceiveData(&i2ctest,receive_data,1,0x68);
+	I2C_MasterReceiveData(&i2ctest,&rec,1,0x68);
 
+	I2C_MasterSendData(&i2ctest,&data[1],1,0x68);
+	
+	I2C_MasterReceiveData(&i2ctest,receive_data,rec,0x68);
 }
-
-
-/*
-//receive data 
-	I2C1->CR1 |= I2C_CR1_PE;
-	I2C1->CR1	|= I2C_CR1_START;
-	while(!(I2C1->SR1 & I2C_SR1_SB));
-	I2C1->DR = (0x68 << 1);
-	I2C1->DR |= (1<<0);
-	while(!(I2C1->SR1 & I2C_SR1_ADDR));
-	I2C1->CR1 &= ~(I2C_CR1_ACK);
-	
-	reg_state = I2C1->SR1;
-	reg_state = I2C1->SR2;
-	while(!(I2C1->SR1 & I2C_SR1_RXNE));
-	I2C1->CR1 |= I2C_CR1_STOP;
-	receive_data = I2C1->DR;
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-int main()
-{
-	uint32_t reg_state;
-	uint8_t data = 0x45;
-	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN ;
-	RCC->APB1ENR |= RCC_APB1ENR_I2C2EN ;
-	
-	GPIOB->CRH |= (GPIO_CRH_MODE10) | (GPIO_CRH_CNF10);
-	GPIOB->CRH |= (GPIO_CRH_MODE11) | (GPIO_CRH_CNF11);
-	
-		
-	I2C2->CR2 |= (0x24 & (0x3F));
-	I2C2->CCR |= (0x32 & (0xFFF));
-	I2C2->TRISE = 0x25;
-	
-	I2C2->CR1 |= (I2C_CR1_PE);
-	
-	
-	I2C2->CR1 |= I2C_CR1_START;
-	
-	while(!(I2C2->SR1 & I2C_SR1_SB));
-	
-	reg_state = I2C2->SR1;
-
-	I2C2->DR = slave_addr;
-	
-	while(!(I2C2->SR1 & I2C_SR1_ADDR));
-	
-	reg_state = I2C2->SR1;
-	reg_state = I2C2->SR2;
-	(void)reg_state;
-		
-	while(!(I2C2->SR1 & I2C_SR1_TXE));
-	
-	I2C2->DR = ((data) & (0xFF)) ;
-	while(!(I2C2->SR1 & I2C_SR1_TXE));
-	
-	while(!(I2C2->SR1 & I2C_SR1_BTF));
-	I2C2->CR1 |= (I2C_CR1_STOP);
-	
-}
-
-*/
