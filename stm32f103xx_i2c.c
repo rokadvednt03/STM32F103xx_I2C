@@ -182,8 +182,8 @@ void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint16_t *pRxBuffer , uin
 		pi2cHandler->pI2Cx->CR1 &= ~(I2C_CR1_ACK);
 		reg_state = pi2cHandler->pI2Cx->SR1;
 		reg_state = pi2cHandler->pI2Cx->SR2;
-		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
 		pi2cHandler->pI2Cx->CR1 |= (I2C_CR1_STOP);
+		while(!(pi2cHandler->pI2Cx->SR1 & I2C_SR1_RXNE));
 		*pRxBuffer = pi2cHandler->pI2Cx->DR;
 	
 	}
