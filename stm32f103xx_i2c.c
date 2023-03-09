@@ -162,7 +162,7 @@ void I2C_MasterSendData(I2C_Handle_t *pi2cHandler , uint8_t *pTxBuffer , uint32_
 //																I2C_MasterReceiveData                                //
 //																															  										 //
 /////////////////////////////////////////////////////////////////////////////////////////
-void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint16_t *pRxBuffer , uint32_t len ,uint8_t Slaveaddr)
+void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint8_t *pRxBuffer , uint32_t len ,uint8_t Slaveaddr)
 {
 	uint32_t reg_state;
 	Slaveaddr = (Slaveaddr << 1) ;

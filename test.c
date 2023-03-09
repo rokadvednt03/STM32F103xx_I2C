@@ -5,8 +5,9 @@
 
 int main()
 {
-	uint16_t receive_data[] = {};
-	uint16_t rec;
+	uint8_t receive_data[8] ;
+	uint8_t rec;
+	
 		
 	uint8_t data[] = {0x51,0x52};
 	I2C_Handle_t i2ctest;
@@ -37,4 +38,6 @@ int main()
 	I2C_MasterSendData(&i2ctest,&data[1],1,0x68);
 	
 	I2C_MasterReceiveData(&i2ctest,receive_data,rec,0x68);
+	
+	I2C_MasterSendData(&i2ctest,(uint8_t*)receive_data,8,0x68);
 }
