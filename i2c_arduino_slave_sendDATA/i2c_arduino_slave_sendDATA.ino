@@ -1,5 +1,5 @@
 #include <Wire.h>
-#define SLAVE_ADDR 0x68
+#define SLAVE_ADDR 0x67
 uint8_t active_command = 0xff;
 
 void setup() {

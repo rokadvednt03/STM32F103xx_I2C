@@ -5,11 +5,11 @@
 
 int main()
 {
-	uint8_t receive_data[8] ;
+	uint8_t receive_data[150] ;
 	uint8_t rec;
 	
 		
-	uint8_t data[] = {0x51,0x52};
+	uint8_t data[] = {0x51,0x52,0x55};
 	I2C_Handle_t i2ctest;
 	
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN ;
@@ -31,13 +31,5 @@ int main()
 	
 	I2C1->CR1 |= (I2C_CR1_PE);
 	
-	I2C_MasterSendData(&i2ctest,&data[0],1,0x68);
-
-	I2C_MasterReceiveData(&i2ctest,&rec,1,0x68);
-
-	I2C_MasterSendData(&i2ctest,&data[1],1,0x68);
-	
-	I2C_MasterReceiveData(&i2ctest,receive_data,rec,0x68);
-	
-	I2C_MasterSendData(&i2ctest,(uint8_t*)receive_data,8,0x68);
+	I2C_Mem_Write(&i2ctest,0x68,0x75,1,data);
 }
