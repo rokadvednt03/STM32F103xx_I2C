@@ -247,6 +247,7 @@ void I2C_Mem_Write(I2C_Handle_t *pi2cHandler , uint8_t Slaveaddr , uint8_t MemAd
 	{
 		pi2cHandler->pI2Cx->DR = *pTxBuffer & (0xFF);
 		while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_SR1_TXE)));
+		pTxBuffer++;
 	}
 	
 	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_SR1_TXE)));
@@ -254,6 +255,36 @@ void I2C_Mem_Write(I2C_Handle_t *pi2cHandler , uint8_t Slaveaddr , uint8_t MemAd
 	
 	I2C_Stopbit_Generation(pi2cHandler->pI2Cx);
 	
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                     //
+//																I2C_MemoryWrite                                      //
+//																															  										 //
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void I2C_Mem_Read(I2C_Handle_t *pi2cHandler , uint8_t Slaveaddr , uint8_t MemAddr ,uint8_t MemAddrSize ,uint8_t *pRxBuffer)
+{
+
+	I2C_Startbit_Gernation(pi2cHandler->pI2Cx);
+	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_SR1_SB)));
+	
+	I2C_ClearFlag(pi2cHandler->pI2Cx);
+	
+	I2C_ExcicuteADDR_PhaseWrite(pi2cHandler->pI2Cx,Slaveaddr);
+	
+	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_SR1_ADDR)));
+	
+	I2C_ClearFlag(pi2cHandler->pI2Cx);
+	
+	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_SR1_TXE)));
+	
+	pi2cHandler->pI2Cx->DR = MemAddr & (0xFF);
+	
+	while(!(I2C_GetFlagStatus(pi2cHandler->pI2Cx,I2C_SR1_TXE)));
+	I2C_MasterReceiveData(pi2cHandler,pRxBuffer,MemAddrSize,Slaveaddr);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

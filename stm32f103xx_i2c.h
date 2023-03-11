@@ -94,4 +94,4 @@ uint8_t I2C_GetFlagStatus(I2C_TypeDef *pI2Cx , uint8_t Flagname);
 void I2C_MasterReceiveData(I2C_Handle_t *pi2cHandler , uint8_t *pRxBuffer , uint32_t len ,uint8_t Slaveaddr);
 
 void I2C_Mem_Write(I2C_Handle_t *pi2cHandler , uint8_t Slaveaddr , uint8_t MemAddr ,uint8_t MemAddrSize ,uint8_t *pTxBuffer);
-
+void I2C_Mem_Read(I2C_Handle_t *pi2cHandler , uint8_t Slaveaddr , uint8_t MemAddr ,uint8_t MemAddrSize ,uint8_t *pRxBuffer);
