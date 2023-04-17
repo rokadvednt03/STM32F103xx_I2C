@@ -5,11 +5,10 @@
 
 int main()
 {
-	uint8_t receive_data[150] ;
-	uint8_t rec;
-	
-		
-	uint8_t data[] = {0x51,0x52};
+	char a[] = "hello world";
+	uint8_t rcv[250] ;
+	uint8_t mem_addr[] = {0x51,0x52};
+	uint8_t len ;
 	I2C_Handle_t i2ctest;
 	
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN ;
@@ -30,9 +29,11 @@ int main()
 	I2C_Init(&i2ctest);
 	
 	I2C1->CR1 |= (I2C_CR1_PE);
-	
-	//I2C_Mem_Write(&i2ctest,0x68,0x75,2,data);
-	I2C_Mem_Read(&i2ctest,0x68,data[0],1,&rec);
-	I2C_Mem_Read(&i2ctest,0x68,data[1],rec,receive_data);
+	//I2C master and arduino slave
+//	I2C_MasterSendData(&i2ctest,(uint8_t*)a,sizeof(a),0x68);
+
+	//I2C slave and arduino master
+	I2C_Mem_Read(&i2ctest,0x68,mem_addr[0],1,&len);
+	I2C_Mem_Read(&i2ctest,0x68,mem_addr[1],len,rcv);
 	
 }
